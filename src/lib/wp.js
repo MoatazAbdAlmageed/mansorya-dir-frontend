@@ -34,12 +34,19 @@ export async function getDirectory(slug) {
 }
 
 export async function getCategories() {
-  const [page1, page2] = await Promise.all([
-    fetchAPI('/directory_category?per_page=100&hide_empty=false&page=1'),
-    fetchAPI('/directory_category?per_page=100&hide_empty=false&page=2')
-  ]);
+  const page1 = await fetchAPI('/directory_category?per_page=100&hide_empty=false&page=1');
   
-  // Combine results, ensuring they are arrays
-  const all = [...(Array.isArray(page1) ? page1 : []), ...(Array.isArray(page2) ? page2 : [])];
-  return all;
+  // Only fetch page 2 if page 1 was full
+  let page2 = [];
+  if (Array.isArray(page1) && page1.length === 100) {
+    page2 = await fetchAPI('/directory_category?per_page=100&hide_empty=false&page=2');
+  }
+  
+  return [...page1, ...page2];
 }
+
+export async function getCategoryBySlug(slug) {
+  const categories = await fetchAPI(`/directory_category?slug=${slug}`);
+  return categories[0];
+}
+

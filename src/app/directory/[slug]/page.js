@@ -1,6 +1,7 @@
-import { getDirectory } from "@/lib/wp";
+import { getDirectory, getCategories, buildCategoryPath } from "@/lib/wp";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 // Helper for social icons
 const SocialLink = ({ url, icon, label, color }) => {
@@ -21,17 +22,21 @@ export default async function DirectorySingle({ params }) {
 
   const acf = post.acf || {};
   
+  // Build Breadcrumbs
+  const allCategories = await getCategories();
+  const categoryId = post.directory_category?.[0]; // Take the first category
+  const categoryPath = categoryId ? buildCategoryPath(allCategories, categoryId) : [];
+  const breadcrumbItems = [...categoryPath, { label: post.title.rendered }];
+  
   return (
-    <div className="container" style={{ paddingTop: '4rem', paddingBottom: '6rem' }}>
+    <div className="container section-padding">
       <header style={{ marginBottom: '3rem' }}>
-        <Link href="/" className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', border: 'none', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-          <i className="fa-solid fa-arrow-right"></i> العودة للدليل
-        </Link>
+        <Breadcrumbs items={breadcrumbItems} />
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '3rem', alignItems: 'start' }}>
+      <div className="single-grid">
         {/* Main Content */}
-        <main className="glass animate-fade-in" style={{ padding: '3rem', background: '#fff' }}>
+        <main className="glass animate-fade-in responsive-padding" style={{ background: '#fff' }}>
           <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: '#0f172a' }} dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
           
           {acf.image_url && (
@@ -148,8 +153,8 @@ export default async function DirectorySingle({ params }) {
         </main>
 
         {/* Sidebar Info */}
-        <aside className="animate-fade-in" style={{ position: 'sticky', top: '2rem' }}>
-          <div className="glass" style={{ padding: '2rem', background: '#fff', border: '1px solid #e2e8f0' }}>
+        <aside className="animate-fade-in sticky-sidebar">
+          <div className="glass responsive-padding" style={{ background: '#fff', border: '1px solid #e2e8f0' }}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{ width: '80px', height: '80px', background: 'var(--primary)', borderRadius: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#fff', fontSize: '2rem' }}>
                 <i className="fa-solid fa-address-card"></i>
@@ -164,7 +169,7 @@ export default async function DirectorySingle({ params }) {
                 <p>{acf.phone || 'غير متوفر'}</p>
                 {acf.phone && (
                   <a href={`tel:${acf.phone}`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
-                    اتصال هاتفي
+                    <i className="fa-solid fa-phone"></i> اتصال هاتفي
                   </a>
                 )}
               </div>
@@ -175,7 +180,7 @@ export default async function DirectorySingle({ params }) {
                   <label><i className="fa-brands fa-whatsapp" style={{ color: '#25D366' }}></i> واتساب</label>
                   <p>{acf.whatsapp}</p>
                   <a href={`https://wa.me/${acf.whatsapp.replace(/\D/g,'')}`} target="_blank" className="btn" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', background: '#25D366', color: '#fff' }}>
-                    إرسال رسالة
+                    <i className="fa-brands fa-whatsapp"></i> إرسال رسالة
                   </a>
                 </div>
               )}
@@ -186,7 +191,7 @@ export default async function DirectorySingle({ params }) {
                 <p style={{ fontSize: '0.95rem' }}>{acf.address || 'غير محدد حالياً'}</p>
                 {acf.google_map && (
                   <a href={acf.google_map} target="_blank" className="btn" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', background: '#f1f5f9', color: '#0f172a' }}>
-                    فتح في الخريطة
+                    <i className="fa-solid fa-map-location-dot"></i> فتح في الخريطة
                   </a>
                 )}
               </div>

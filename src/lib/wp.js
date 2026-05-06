@@ -50,3 +50,20 @@ export async function getCategoryBySlug(slug) {
   return categories[0];
 }
 
+export function buildCategoryPath(allCategories, currentCategoryId) {
+  const path = [];
+  let current = allCategories.find(cat => cat.id === currentCategoryId);
+  
+  while (current) {
+    path.unshift({
+      label: current.name,
+      href: `/directory_category/${current.slug}`
+    });
+    
+    if (current.parent === 0) break;
+    current = allCategories.find(cat => cat.id === current.parent);
+  }
+  
+  return path;
+}
+

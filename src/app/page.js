@@ -1,5 +1,7 @@
 import { getDirectories, getCategories } from "@/lib/wp";
 import Link from "next/link";
+import SearchBar from "@/components/SearchBar";
+import { Suspense } from "react";
 
 // Helper to get all descendant IDs of a category
 function getAllDescendantIds(categories, parentId) {
@@ -15,10 +17,12 @@ function getAllDescendantIds(categories, parentId) {
 export default async function DirectoryArchive({ searchParams }) {
   const params = await searchParams;
   const categoryId = params.category;
+  const searchQuery = params.s;
   
   let directories = [];
   let allCategories = [];
   let currentCategory = null;
+  let searchedCategories = [];
 
   try {
     // 1. Fetch all categories
@@ -26,15 +30,28 @@ export default async function DirectoryArchive({ searchParams }) {
     allCategories = Array.isArray(allCategories) ? allCategories : [];
 
     // 2. Build the directory filter
-    let filterParams = "?per_page=12&_embed";
+    let filterParams = `?per_page=${searchQuery ? 100 : 12}&_embed`;
+    
+    if (searchQuery) {
+      filterParams += `&search=${encodeURIComponent(searchQuery)}`;
+      
+      // Also search in categories
+      searchedCategories = allCategories.filter(cat => 
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (cat.description && cat.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
     if (categoryId) {
       const id = parseInt(categoryId);
       currentCategory = allCategories.find(c => c.id === id);
       
-      // Include current category + all its descendants to match WP behavior
-      const descendantIds = getAllDescendantIds(allCategories, id);
-      const allFilterIds = [id, ...descendantIds].join(',');
-      filterParams += `&directory_category=${allFilterIds}`;
+      if (currentCategory) {
+        // Include current category + all its descendants to match WP behavior
+        const descendantIds = getAllDescendantIds(allCategories, id);
+        const allFilterIds = [id, ...descendantIds].join(',');
+        filterParams += `&directory_category=${allFilterIds}`;
+      }
     }
 
     // 3. Fetch directories
@@ -50,7 +67,7 @@ export default async function DirectoryArchive({ searchParams }) {
   const currentChildren = categoryId ? allCategories.filter(cat => cat.parent === parseInt(categoryId) && cat.count > 0) : [];
 
   return (
-    <div className="container" style={{ paddingTop: '4rem' }}>
+    <div className="container section-padding">
       <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
         {currentCategory ? (
           <>
@@ -101,22 +118,24 @@ export default async function DirectoryArchive({ searchParams }) {
               دليل <span className="text-gradient">المنصورية</span>
             </h1>
             <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', maxWidth: '700px', margin: '0 auto' }}>
-              خدمة مجانية لتسهيل الوصول لأصحاب المهن وأرباب الحرف. 
-              نجمع لك كافة الخدمات في مكان واحد.
+              اكتشف الخدمات، المحلات، والمنشآت في منطقة المنصورية بكل سهولة
             </p>
+            <Suspense fallback={<div>جاري التحميل...</div>}>
+              <SearchBar key={searchQuery || 'initial'} />
+            </Suspense>
           </>
         )}
       </header>
 
-      {/* Categories Explorer - ONLY show when NO category is selected */}
+      {/* Categories Explorer or Search Results */}
       {!categoryId && (
         <section style={{ marginBottom: '6rem' }}>
           <h2 style={{ marginBottom: '2.5rem', textAlign: 'center', fontSize: '1.8rem', opacity: 0.8 }}>
-            استكشف الدليل حسب القسم
+            {searchQuery ? 'الأقسام المطابقة' : 'استكشف الدليل حسب القسم'}
           </h2>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
-            {parentCategories.map(cat => {
+            {(searchQuery ? searchedCategories : parentCategories).map(cat => {
               const children = allCategories.filter(c => c.parent === cat.id && c.count > 0);
               return (
                 <div key={cat.id} className="glass animate-fade-in" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
@@ -171,9 +190,9 @@ export default async function DirectoryArchive({ searchParams }) {
       <section id="results" style={{ paddingBottom: '4rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
           <h2 style={{ fontSize: '2rem', margin: 0 }}>
-            {categoryId ? `النتائج في ${currentCategory?.name}` : 'أحدث القوائم المضافة'}
+            {searchQuery ? `نتائج البحث عن: ${searchQuery}` : (categoryId ? `النتائج في ${currentCategory?.name}` : 'أحدث القوائم المضافة')}
           </h2>
-          {categoryId && directories.length > 0 && (
+          {(categoryId || searchQuery) && directories.length > 0 && (
             <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
               تم العثور على {directories.length} منشأة
             </span>
@@ -182,15 +201,28 @@ export default async function DirectoryArchive({ searchParams }) {
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
           {directories.length > 0 ? directories.map(post => (
-            <div key={post.id} className="glass animate-fade-in" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-              <h3 dangerouslySetInnerHTML={{ __html: post.title.rendered }} style={{ fontSize: '1.4rem', marginBottom: '1rem' }} />
-              <div 
-                dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
-                style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }} 
-              />
-              <Link href={`/directory/${post.slug}`} className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', fontWeight: 'bold', width: 'fit-content' }}>
-                التفاصيل الكاملة ←
-              </Link>
+            <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
+              {post.acf?.image_url && (
+                <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
+                  <img src={post.acf.image_url} alt={post.title.rendered} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} className="card-image" />
+                  <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                    <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>
+                    مميز
+                  </div>
+                </Link>
+              )}
+              <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <Link href={`/directory/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <h3 dangerouslySetInnerHTML={{ __html: post.title.rendered }} style={{ fontSize: '1.4rem', marginBottom: '0.8rem', color: '#0f172a', transition: 'color 0.2s' }} className="title-link" />
+                </Link>
+                <div 
+                  dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
+                  style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }} 
+                />
+                <Link href={`/directory/${post.slug}`} className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', fontWeight: 'bold', width: 'fit-content' }}>
+                  التفاصيل الكاملة ←
+                </Link>
+              </div>
             </div>
           )) : (
             <div className="glass animate-fade-in" style={{ padding: '5rem 2rem', textAlign: 'center', gridColumn: '1/-1', background: '#fff' }}>

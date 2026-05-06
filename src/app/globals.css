@@ -19,6 +19,10 @@
   margin: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -202,4 +206,99 @@ h3 {
 .gallery-item:hover {
   transform: scale(1.03);
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.title-link:hover {
+  color: var(--primary) !important;
+}
+
+.listing-card:hover .card-image {
+  transform: scale(1.1);
+}
+
+/* Responsive Utilities */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 1rem;
+  }
+  
+  .container {
+    padding: 0 var(--container-padding);
+  }
+
+  h1 { font-size: 2.5rem !important; }
+  h2 { font-size: 1.8rem !important; }
+  
+  .whatsapp-balloon {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 55px;
+    height: 55px;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 2rem !important; }
+  .btn { width: 100%; justify-content: center; }
+}
+
+/* Layout Specifics */
+.single-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .single-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.responsive-padding {
+  padding: 3rem;
+}
+
+@media (max-width: 768px) {
+  .responsive-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-padding {
+    padding: 1.25rem;
+  }
+}
+
+.sticky-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+@media (max-width: 992px) {
+  .sticky-sidebar {
+    position: static;
+  }
+}
+
+.section-padding {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
 }

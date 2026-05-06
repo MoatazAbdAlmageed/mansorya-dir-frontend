@@ -198,3 +198,8 @@ h3 {
   border-color: var(--brand-color);
   transform: translateY(-2px);
 }
+
+.gallery-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}

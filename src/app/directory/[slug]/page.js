@@ -34,6 +34,12 @@ export default async function DirectorySingle({ params }) {
         <main className="glass animate-fade-in" style={{ padding: '3rem', background: '#fff' }}>
           <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: '#0f172a' }} dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
           
+          {acf.image_url && (
+            <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+              <img src={acf.image_url} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+            </div>
+          )}
+          
           <div className="content-section" style={{ marginBottom: '3rem' }}>
             <h3 style={{ marginBottom: '1rem', opacity: 0.6 }}>عن النشاط</h3>
             <div style={{ fontSize: '1.15rem', lineHeight: '1.8', color: '#334155' }}>
@@ -65,6 +71,80 @@ export default async function DirectorySingle({ params }) {
               <SocialLink url={acf.behance} icon="behance" label="Behance" color="#0057ff" />
             </div>
           </div>
+
+          {/* Gallery Section */}
+          {acf.gallery && Array.isArray(acf.gallery) && acf.gallery.length > 0 && (
+            <div style={{ marginTop: '4rem' }}>
+              <h3 style={{ marginBottom: '1.5rem', opacity: 0.6 }}>معرض الصور</h3>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+                gap: '1rem' 
+              }}>
+                {acf.gallery.map((img, idx) => (
+                  <div key={idx} className="gallery-item" style={{ 
+                    borderRadius: '1rem', 
+                    overflow: 'hidden', 
+                    aspectRatio: '1/1',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.3s'
+                  }}>
+                    <img 
+                      src={img.url || img} 
+                      alt={`Gallery image ${idx + 1}`} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Video Section */}
+          {(acf.youtube || acf.videos) && (
+            <div style={{ marginTop: '4rem' }}>
+              <h3 style={{ marginBottom: '1.5rem', opacity: 0.6 }}>الفيديوهات</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {acf.youtube && (
+                  <div style={{ 
+                    position: 'relative', 
+                    paddingBottom: '56.25%', 
+                    height: 0, 
+                    borderRadius: '1.5rem', 
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                  }}>
+                    <iframe
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                      src={acf.youtube.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                )}
+                {acf.videos && Array.isArray(acf.videos) && acf.videos.map((video, idx) => (
+                  <div key={idx} style={{ 
+                    position: 'relative', 
+                    paddingBottom: '56.25%', 
+                    height: 0, 
+                    borderRadius: '1.5rem', 
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                  }}>
+                    <video 
+                      controls 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                    >
+                      <source src={video.url || video} />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
 
         {/* Sidebar Info */}

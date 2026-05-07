@@ -3,6 +3,7 @@
   --foreground: #1e293b;
   --primary: #009688;
   --primary-hover: #00796b;
+  --primary-light: rgba(0, 150, 136, 0.1);
   --secondary: #ffffff;
   --accent: #ffc107;
   --card-bg: rgba(255, 255, 255, 0.9);

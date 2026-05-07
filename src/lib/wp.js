@@ -67,3 +67,26 @@ export function buildCategoryPath(allCategories, currentCategoryId) {
   return path;
 }
 
+export async function createDirectory(data) {
+  const response = await fetch(`${API_URL}/directory`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Authorization will be handled via a custom header or Application Passwords
+      // For now, we assume the server/proxy handles this or the user provides it
+      'Authorization': `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASSWORD}`).toString('base64')}`
+    },
+    body: JSON.stringify({
+      ...data,
+      status: 'pending'
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create directory');
+  }
+
+  return response.json();
+}
+

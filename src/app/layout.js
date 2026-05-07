@@ -33,6 +33,21 @@ export default function RootLayout({ children }) {
             </Link>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
               <Link href="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', fontWeight: '500' }}>الأدلة</Link>
+              <Link 
+                href="/add-business" 
+                style={{ 
+                  color: 'var(--accent)', 
+                  textDecoration: 'none', 
+                  fontWeight: '700',
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.75rem',
+                  fontSize: '0.9rem',
+                  border: '1px solid rgba(255,193,7,0.3)'
+                }}
+              >
+                أضف عملك
+              </Link>
               <a 
                 href="https://www.facebook.com/groups/mansorya" 
                 target="_blank" 

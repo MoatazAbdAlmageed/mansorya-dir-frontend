@@ -76,18 +76,19 @@ export default function RootLayout({ children }) {
                   color: '#fff', 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '0.6rem', 
+                  justifyContent: 'center',
                   textDecoration: 'none', 
                   background: 'rgba(255,255,255,0.15)', 
-                  padding: '0.6rem 1.2rem', 
+                  width: '2.8rem',
+                  height: '2.8rem',
                   borderRadius: '1rem', 
-                  fontSize: '0.95rem',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  border: '1px solid rgba(255,255,255,0.1)'
                 }}
                 className="nav-btn"
+                aria-label="فيسبوك"
               >
-                <i className="fa-brands fa-facebook" style={{ fontSize: '1.2rem' }}></i>
-                <span>الجروب</span>
+                <i className="fa-brands fa-facebook" style={{ fontSize: '1.4rem' }}></i>
               </a>
             </div>
           </div>

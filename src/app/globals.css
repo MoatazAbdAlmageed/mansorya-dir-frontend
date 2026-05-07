@@ -309,7 +309,23 @@ h3 {
   }
 }
 
-/* Loader Styles */
+/* User Custom Circle Loader */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #f1f5f9;
+  border-bottom-color: var(--primary);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .loader-container {
   position: fixed;
   top: 0;
@@ -319,8 +335,8 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(248, 250, 252, 0.9);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
   z-index: 9999;
 }
 
@@ -328,89 +344,17 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-}
-
-.loader-visual {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.prism-loader {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  border-radius: 12px;
-  animation: morphPrism 3s ease-in-out infinite;
-  box-shadow: 0 10px 30px rgba(0, 150, 136, 0.2);
-  z-index: 2;
-}
-
-.loader-rings {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.loader-rings span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  border: 2px solid var(--primary);
-  border-radius: 50%;
-  opacity: 0;
-  animation: pulseRings 2s linear infinite;
-}
-
-.loader-rings span:nth-child(2) { animation-delay: 0.6s; }
-.loader-rings span:nth-child(3) { animation-delay: 1.2s; }
-
-@keyframes morphPrism {
-  0%, 100% { 
-    border-radius: 12px; 
-    transform: rotate(0deg) scale(1); 
-  }
-  33% { 
-    border-radius: 50%; 
-    transform: rotate(120deg) scale(1.1); 
-  }
-  66% { 
-    border-radius: 30% 70% 30% 70%; 
-    transform: rotate(240deg) scale(0.9); 
-  }
-}
-
-@keyframes pulseRings {
-  0% { 
-    transform: scale(0.8); 
-    opacity: 0; 
-  }
-  50% { 
-    opacity: 0.4; 
-  }
-  100% { 
-    transform: scale(2.2); 
-    opacity: 0; 
-  }
+  gap: 1.5rem;
 }
 
 .loader-text {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--primary);
-  letter-spacing: 1px;
-  animation: textFade 1.5s ease-in-out infinite alternate;
+  animation: pulse-opacity 1.5s ease-in-out infinite;
 }
 
-@keyframes textFade {
-  from { opacity: 0.6; }
-  to { opacity: 1; }
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }

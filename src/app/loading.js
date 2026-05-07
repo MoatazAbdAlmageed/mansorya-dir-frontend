@@ -4,14 +4,7 @@ export default function Loading() {
   return (
     <div className="loader-container">
       <div className="loader-content">
-        <div className="loader-visual">
-          <div className="prism-loader"></div>
-          <div className="loader-rings">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
+        <div className="loader"></div>
         <p className="loader-text">جاري التحميل...</p>
       </div>
     </div>

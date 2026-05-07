@@ -9,6 +9,11 @@ const PWAInstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    // Check if already installed/in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      localStorage.setItem('pwa-prompt-dismissed', 'true');
+    }
+
     const handler = (e) => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
@@ -30,6 +35,7 @@ const PWAInstallPrompt = () => {
     window.addEventListener('appinstalled', () => {
       setDeferredPrompt(null);
       setShowPrompt(false);
+      localStorage.setItem('pwa-prompt-dismissed', 'true');
       console.log('PWA was installed');
     });
 
@@ -40,6 +46,9 @@ const PWAInstallPrompt = () => {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
+
+    // Save to localStorage so we don't ask again
+    localStorage.setItem('pwa-prompt-dismissed', 'true');
 
     // Show the install prompt
     deferredPrompt.prompt();

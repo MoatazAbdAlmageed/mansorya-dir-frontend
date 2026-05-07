@@ -2,6 +2,8 @@ import "./globals.css";
 import Link from "next/link";
 import { Cairo } from "next/font/google";
 
+import ScrollToTop from "@/components/ScrollToTop";
+
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -11,6 +13,14 @@ const cairo = Cairo({
 export const metadata = {
   title: "دليل المنصورية",
   description: "دليل الخدمات والأعمال الشامل لمنطقة المنصورية",
+  manifest: '/manifest.json',
+  themeColor: '#009688',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'المنصورية',
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -62,6 +72,8 @@ export default function RootLayout({ children }) {
         </nav>
 
         <main>{children}</main>
+        
+        <ScrollToTop />
 
         <a 
           href="https://wa.me/201150064746" 

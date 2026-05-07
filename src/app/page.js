@@ -1,6 +1,7 @@
 import { getDirectories, getCategories, getFeaturedImage } from "@/lib/wp";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
+import Spinner from "@/components/Spinner";
 import { Suspense } from "react";
 
 // Helper to get all descendant IDs of a category
@@ -120,7 +121,7 @@ export default async function DirectoryArchive({ searchParams }) {
             <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', maxWidth: '700px', margin: '0 auto' }}>
               اكتشف الخدمات، المحلات، والمنشآت في منطقة المنصورية بكل سهولة
             </p>
-            <Suspense fallback={<div>جاري التحميل...</div>}>
+            <Suspense fallback={<Spinner size="small" text="" />}>
               <SearchBar key={searchQuery || 'initial'} />
             </Suspense>
           </>

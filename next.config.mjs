@@ -21,6 +21,7 @@ const nextConfig = {
       }
     ],
   },
+  turbopack: {},
 };
 
 const withPWA = withPWAInit({

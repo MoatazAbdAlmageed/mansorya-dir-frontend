@@ -1,4 +1,4 @@
-import { getDirectory, getCategories, buildCategoryPath } from "@/lib/wp";
+import { getDirectory, getCategories, buildCategoryPath, getFeaturedImage } from "@/lib/wp";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -27,6 +27,8 @@ export default async function DirectorySingle({ params }) {
   const categoryId = post.directory_category?.[0]; // Take the first category
   const categoryPath = categoryId ? buildCategoryPath(allCategories, categoryId) : [];
   const breadcrumbItems = [...categoryPath, { label: post.title.rendered }];
+
+  const imageUrl = getFeaturedImage(post);
   
   return (
     <div className="container section-padding">
@@ -39,9 +41,9 @@ export default async function DirectorySingle({ params }) {
         <main className="glass animate-fade-in responsive-padding" style={{ background: '#fff' }}>
           <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: '#0f172a' }} dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
           
-          {acf.image_url && (
+          {imageUrl && (
             <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-              <img src={acf.image_url} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+              <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
             </div>
           )}
           

@@ -25,12 +25,26 @@ export async function fetchAPI(endpoint, options = {}) {
 }
 
 export async function getDirectories(params = '') {
-  return fetchAPI(`/directory${params}`);
+  const separator = params.includes('?') ? '&' : '?';
+  return fetchAPI(`/directory${params}${separator}_embed`);
 }
 
 export async function getDirectory(slug) {
-  const posts = await fetchAPI(`/directory?slug=${slug}`);
+  const posts = await fetchAPI(`/directory?slug=${slug}&_embed`);
   return posts[0];
+}
+
+export function getFeaturedImage(post) {
+  // 1. Check ACF field first
+  if (post.acf?.image_url) return post.acf.image_url;
+  
+  // 2. Check WordPress Featured Image via _embedded
+  if (post._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
+    return post._embedded['wp:featuredmedia'][0].source_url;
+  }
+  
+  // 3. Fallback placeholder
+  return '/icon-512x512.png'; 
 }
 
 export async function getCategories() {

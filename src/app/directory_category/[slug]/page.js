@@ -1,4 +1,4 @@
-import { getDirectories, getCategories, getCategoryBySlug, buildCategoryPath } from "@/lib/wp";
+import { getDirectories, getCategories, getCategoryBySlug, buildCategoryPath, getFeaturedImage } from "@/lib/wp";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -38,7 +38,7 @@ export default async function CategoryPage({ params }) {
     const descendantIds = getAllDescendantIds(allCategories, id);
     const allFilterIds = [id, ...descendantIds].join(',');
     
-    let filterParams = `?per_page=100&_embed&directory_category=${allFilterIds}`;
+    let filterParams = `?per_page=100&directory_category=${allFilterIds}`;
 
     // 4. Fetch directories
     directories = await getDirectories(filterParams);
@@ -117,31 +117,32 @@ export default async function CategoryPage({ params }) {
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-          {directories.length > 0 ? directories.map(post => (
-            <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
-              {post.acf?.image_url && (
+          {directories.length > 0 ? directories.map(post => {
+            const imageUrl = getFeaturedImage(post);
+            return (
+              <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                  <img src={post.acf.image_url} alt={post.title.rendered} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} className="card-image" />
+                  <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} className="card-image" />
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                     <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>
                     مميز
                   </div>
                 </Link>
-              )}
-              <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <Link href={`/directory/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                  <h3 dangerouslySetInnerHTML={{ __html: post.title.rendered }} style={{ fontSize: '1.4rem', marginBottom: '0.8rem', color: '#0f172a', transition: 'color 0.2s' }} className="title-link" />
-                </Link>
-                <div 
-                  dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
-                  style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }} 
-                />
-                <Link href={`/directory/${post.slug}`} className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', fontWeight: 'bold', width: 'fit-content' }}>
-                  التفاصيل الكاملة ←
-                </Link>
+                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <Link href={`/directory/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                    <h3 dangerouslySetInnerHTML={{ __html: post.title.rendered }} style={{ fontSize: '1.4rem', marginBottom: '0.8rem', color: '#0f172a', transition: 'color 0.2s' }} className="title-link" />
+                  </Link>
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
+                    style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }} 
+                  />
+                  <Link href={`/directory/${post.slug}`} className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', fontWeight: 'bold', width: 'fit-content' }}>
+                    التفاصيل الكاملة ←
+                  </Link>
+                </div>
               </div>
-            </div>
-          )) : (
+            );
+          }) : (
             <div className="glass animate-fade-in" style={{ padding: '5rem 2rem', textAlign: 'center', gridColumn: '1/-1', background: '#fff' }}>
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
               <p style={{ fontSize: '1.4rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>لا توجد منشآت منشورة في هذا القسم حالياً.</p>

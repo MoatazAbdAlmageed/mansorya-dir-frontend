@@ -2,6 +2,7 @@ import { getDirectory, getCategories, buildCategoryPath, getFeaturedImage } from
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import ListingInteractions from "@/components/ListingInteractions";
 
 // Helper for social icons
 const SocialLink = ({ url, icon, label, color }) => {
@@ -152,6 +153,8 @@ export default async function DirectorySingle({ params }) {
               </div>
             </div>
           )}
+
+          <ListingInteractions postId={post.id} />
         </main>
 
         {/* Sidebar Info */}

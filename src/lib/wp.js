@@ -104,3 +104,24 @@ export async function createDirectory(data) {
   return response.json();
 }
 
+export async function getComments(postId) {
+  return fetchAPI(`/comments?post=${postId}&orderby=date&order=asc`);
+}
+
+export async function createComment(data) {
+  const response = await fetch('/api/comments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || error.message || 'Failed to post comment');
+  }
+  
+  return response.json();
+}
+

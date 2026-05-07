@@ -18,11 +18,15 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  font-family: var(--font-cairo), sans-serif !important;
+  font-family: var(--font-cairo), sans-serif;
 }
 
 a {
   text-decoration: none;
+}
+
+input, button, select, textarea {
+  font-family: var(--font-cairo), sans-serif !important;
 }
 
 body {

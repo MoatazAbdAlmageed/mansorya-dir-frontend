@@ -68,74 +68,113 @@ const PWAInstallPrompt = () => {
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '90%',
-          maxWidth: '500px',
-          zIndex: 2000,
-          direction: 'rtl',
-        }}
-      >
-        <div className="glass" style={{ 
-          padding: '1.5rem', 
-          position: 'relative',
-          background: 'rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-          border: '1px solid rgba(0, 150, 136, 0.2)'
-        }}>
-          <button 
-            onClick={handleDismiss}
-            style={{
-              position: 'absolute',
-              top: '1rem',
-              left: '1rem',
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              padding: '5px'
-            }}
-          >
-            <X size={20} />
-          </button>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 2000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.5rem',
+        pointerEvents: 'none'
+      }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            pointerEvents: 'auto'
+          }}
+          onClick={handleDismiss}
+        />
+        
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          style={{
+            width: '100%',
+            maxWidth: '480px',
+            position: 'relative',
+            zIndex: 2001,
+            direction: 'rtl',
+            pointerEvents: 'auto'
+          }}
+        >
+          <div className="glass" style={{ 
+            padding: '2rem', 
+            background: 'rgba(255, 255, 255, 0.98)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(0, 150, 136, 0.2)',
+            borderRadius: '2rem'
+          }}>
+            <button 
+              onClick={handleDismiss}
+              style={{
+                position: 'absolute',
+                top: '1.25rem',
+                left: '1.25rem',
+                background: 'rgba(0,0,0,0.05)',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+            >
+              <X size={18} />
+            </button>
 
-          <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
-            <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 8px 16px rgba(0, 150, 136, 0.2)'
-            }}>
-              <Smartphone color="white" size={28} />
-            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
+                width: '70px',
+                height: '70px',
+                borderRadius: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.5rem',
+                boxShadow: '0 12px 24px rgba(0, 150, 136, 0.3)',
+                transform: 'rotate(-5deg)'
+              }}>
+                <Smartphone color="white" size={36} />
+              </div>
 
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>
-                تثبيت دليل المنصورية
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#0f172a', fontWeight: '800' }}>
+                دليل المنصورية في جيبك
               </h3>
-              <p style={{ fontSize: '0.95rem', color: '#475569', marginBottom: '1.25rem', lineHeight: '1.6' }}>
-                استمتع بتجربة دليل المنصورية الكاملة مباشرة من شاشتك الرئيسية! عند تثبيت التطبيق، ستتمكن من الوصول السريع لجميع الخدمات في منطقتك بضغطة واحدة، حتى في حال عدم توفر اتصال بالإنترنت. التطبيق يوفر لك سرعة تصفح فائقة وإشعارات فورية بكل جديد، دون أن يشغل مساحة من ذاكرة هاتفك.
+              <p style={{ fontSize: '1rem', color: '#475569', marginBottom: '2rem', lineHeight: '1.7' }}>
+                استمتع بتجربة دليل المنصورية الكاملة مباشرة من شاشتك الرئيسية! وصول سريع، تصفح بدون إنترنت، وإشعارات فورية بكل جديد في منطقتك.
               </p>
               
-              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <Zap size={14} className="text-gradient" /> <span>تصفح أسرع</span>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '12px' }}>
+                    <Zap size={20} className="text-gradient" />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>أسرع</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <CloudOff size={14} className="text-gradient" /> <span>يعمل بدون إنترنت</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '12px' }}>
+                    <CloudOff size={20} className="text-gradient" />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>بدون نت</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '12px' }}>
+                    <Smartphone size={20} className="text-gradient" />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>خفيف</span>
                 </div>
               </div>
 
@@ -145,17 +184,19 @@ const PWAInstallPrompt = () => {
                 style={{ 
                   width: '100%', 
                   justifyContent: 'center',
-                  fontSize: '1.05rem',
-                  padding: '0.9rem'
+                  fontSize: '1.1rem',
+                  padding: '1.1rem',
+                  borderRadius: '1.25rem',
+                  boxShadow: '0 10px 20px rgba(0, 150, 136, 0.2)'
                 }}
               >
-                <Download size={20} />
+                <Download size={22} />
                 تثبيت التطبيق الآن
               </button>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </AnimatePresence>
   );
 };

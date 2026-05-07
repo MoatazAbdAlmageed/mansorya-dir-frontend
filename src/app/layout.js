@@ -37,13 +37,20 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={cairo.className}>
-        <nav className="glass" style={{ margin: '1rem', position: 'sticky', top: '1rem', zIndex: 100, background: 'linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%)', border: 'none' }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4.5rem' }}>
-            <Link href="/" style={{ textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
-              <span style={{ color: 'var(--accent)' }}>دليل</span> المنصورية
+        <nav className="glass" style={{ 
+          margin: '1.5rem 1rem', 
+          position: 'sticky', 
+          top: '1.5rem', 
+          zIndex: 100, 
+          background: 'linear-gradient(135deg, #00796b 0%, #004d40 100%)', 
+          border: 'none',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
+        }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4.8rem' }}>
+            <Link href="/" style={{ textDecoration: 'none', fontSize: '1.6rem', fontWeight: '900', color: '#fff', letterSpacing: '-0.5px' }}>
+              <span style={{ color: 'var(--accent)', textShadow: '0 2px 10px rgba(255, 193, 7, 0.3)' }}>دليل</span> المنصورية
             </Link>
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-              <Link href="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', fontWeight: '500' }}>الأدلة</Link>
+            <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
               <Link 
                 href="/add-business" 
                 style={{ 
@@ -51,11 +58,13 @@ export default function RootLayout({ children }) {
                   textDecoration: 'none', 
                   fontWeight: '700',
                   background: 'rgba(255,255,255,0.1)',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.9rem',
-                  border: '1px solid rgba(255,193,7,0.3)'
+                  padding: '0.6rem 1.2rem',
+                  borderRadius: '1rem',
+                  fontSize: '0.95rem',
+                  border: '1px solid rgba(255,193,7,0.4)',
+                  transition: 'all 0.3s ease'
                 }}
+                className="nav-btn"
               >
                 أضف عملك
               </Link>
@@ -63,9 +72,21 @@ export default function RootLayout({ children }) {
                 href="https://www.facebook.com/groups/mansorya" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none', background: 'rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '0.75rem', fontSize: '0.9rem' }}
+                style={{ 
+                  color: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.6rem', 
+                  textDecoration: 'none', 
+                  background: 'rgba(255,255,255,0.15)', 
+                  padding: '0.6rem 1.2rem', 
+                  borderRadius: '1rem', 
+                  fontSize: '0.95rem',
+                  transition: 'all 0.3s ease'
+                }}
+                className="nav-btn"
               >
-                <i className="fa-brands fa-facebook" style={{ fontSize: '1.1rem' }}></i>
+                <i className="fa-brands fa-facebook" style={{ fontSize: '1.2rem' }}></i>
                 <span>الجروب</span>
               </a>
             </div>

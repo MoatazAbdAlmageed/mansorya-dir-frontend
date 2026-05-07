@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Cairo } from "next/font/google";
 
 import ScrollToTop from "@/components/ScrollToTop";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -74,6 +75,7 @@ export default function RootLayout({ children }) {
         <main>{children}</main>
         
         <ScrollToTop />
+        <PWAInstallPrompt />
 
         <a 
           href="https://wa.me/201150064746" 

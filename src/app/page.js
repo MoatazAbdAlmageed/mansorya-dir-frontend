@@ -1,8 +1,12 @@
 import { getDirectories, getCategories, getFeaturedImage } from "@/lib/wp";
+import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import Spinner from "@/components/Spinner";
 import { Suspense } from "react";
+
+// ISR: re-generate homepage at most once per hour
+export const revalidate = 3600;
 
 // Helper to get all descendant IDs of a category
 function getAllDescendantIds(categories, parentId) {
@@ -19,26 +23,29 @@ export default async function DirectoryArchive({ searchParams }) {
   const params = await searchParams;
   const categoryId = params.category;
   const searchQuery = params.s;
-  
+
   let directories = [];
   let allCategories = [];
   let currentCategory = null;
   let searchedCategories = [];
 
   try {
-    // 1. Fetch all categories
-    allCategories = await getCategories();
-    allCategories = Array.isArray(allCategories) ? allCategories : [];
-
-    // 2. Build the directory filter
+    // 1. Build directory filter params
     let filterParams = `?per_page=${searchQuery ? 100 : 12}&_embed`;
-    
+    if (searchQuery) filterParams += `&search=${encodeURIComponent(searchQuery)}`;
+
+    // 🚀 Fetch categories + directories in parallel
+    [allCategories, directories] = await Promise.all([
+      getCategories(),
+      getDirectories(filterParams),
+    ]);
+
+    allCategories = Array.isArray(allCategories) ? allCategories : [];
+    directories = Array.isArray(directories) ? directories : [];
+
     if (searchQuery) {
-      filterParams += `&search=${encodeURIComponent(searchQuery)}`;
-      
-      // Also search in categories
-      searchedCategories = allCategories.filter(cat => 
-        cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      searchedCategories = allCategories.filter(cat =>
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (cat.description && cat.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
@@ -46,18 +53,16 @@ export default async function DirectoryArchive({ searchParams }) {
     if (categoryId) {
       const id = parseInt(categoryId);
       currentCategory = allCategories.find(c => c.id === id);
-      
+
       if (currentCategory) {
-        // Include current category + all its descendants to match WP behavior
+        // Re-fetch with category filter applied (needed only when filter changes)
         const descendantIds = getAllDescendantIds(allCategories, id);
         const allFilterIds = [id, ...descendantIds].join(',');
         filterParams += `&directory_category=${allFilterIds}`;
+        directories = await getDirectories(filterParams);
+        directories = Array.isArray(directories) ? directories : [];
       }
     }
-
-    // 3. Fetch directories
-    directories = await getDirectories(filterParams);
-    directories = Array.isArray(directories) ? directories : [];
 
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -201,12 +206,21 @@ export default async function DirectoryArchive({ searchParams }) {
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-          {directories.length > 0 ? directories.map(post => {
+          {directories.length > 0 ? directories.map((post, index) => {
             const imageUrl = getFeaturedImage(post, 'medium_large');
             return (
               <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                  <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} className="card-image" />
+                  <Image
+                    src={imageUrl}
+                    alt={post.title.rendered.replace(/<[^>]+>/g, '')}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    className="card-image"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                    priority={index < 4}
+                    loading={index < 4 ? 'eager' : 'lazy'}
+                  />
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                     <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>
                     مميز

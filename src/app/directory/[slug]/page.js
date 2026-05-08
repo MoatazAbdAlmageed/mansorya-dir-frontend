@@ -1,10 +1,20 @@
-import { getDirectory, getCategories, buildCategoryPath, getFeaturedImage } from "@/lib/wp";
+import { getDirectory, getCategories, buildCategoryPath, getFeaturedImage, getAllDirectorySlugs } from "@/lib/wp";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ListingInteractions from "@/components/ListingInteractions";
 import PhotoGallery from "@/components/PhotoGallery";
 import VideoGallery from "@/components/VideoGallery";
+
+// ISR: re-generate page at most once per hour
+export const revalidate = 3600;
+
+// Pre-render all known directory pages at build time
+export async function generateStaticParams() {
+  const slugs = await getAllDirectorySlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 // Helper for social icons
 const SocialLink = ({ url, icon, label, color }) => {
@@ -19,39 +29,40 @@ const SocialLink = ({ url, icon, label, color }) => {
 
 export default async function DirectorySingle({ params }) {
   const { slug } = await params;
-  const post = await getDirectory(slug);
+
+  // 🚀 Fetch post + all categories in parallel
+  const [post, allCategories] = await Promise.all([
+    getDirectory(slug),
+    getCategories(),
+  ]);
 
   if (!post) notFound();
-  
-  // Debug log to check API fields
-  console.log('Post Data Keys:', Object.keys(post));  
-  console.log('PB Gallery Data:', post.pb_directory_gallery);
-  console.log('PB Video Gallery:', post.pb_video_gallery);
 
   const acf = post.acf || {};
 
   // --- 1. Resolve Photo Gallery Images ---
   let galleryImages = [];
-  
-  // Collect from Manual Gallery (Added via functions.php)
+
   if (post.pb_directory_gallery && post.pb_directory_gallery.length > 0) {
     const pbItems = Array.isArray(post.pb_directory_gallery) ? post.pb_directory_gallery : [post.pb_directory_gallery];
     galleryImages = [...pbItems];
   }
 
-  // Collect from ACF (Fallback)
   if (galleryImages.length === 0 && acf.gallery) {
     const acfItems = Array.isArray(acf.gallery) ? acf.gallery : [acf.gallery];
     galleryImages = [...acfItems];
   }
 
-  // Handle ID resolution if images are returned as numeric IDs (ACF fallback)
+  // Handle ID resolution if images are returned as numeric IDs
   if (galleryImages.length > 0 && typeof galleryImages[0] === 'number') {
     try {
       const resolvedImages = await Promise.all(
         galleryImages.map(async (id) => {
           if (typeof id !== 'number') return id;
-          const res = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/media/${id}`);
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/media/${id}`,
+            { next: { revalidate: 3600 } }
+          );
           if (res.ok) {
             const media = await res.json();
             return { url: media.source_url, alt: media.alt_text };
@@ -68,13 +79,11 @@ export default async function DirectorySingle({ params }) {
   // --- 2. Resolve Video Gallery ---
   let resolvedVideos = [];
 
-  // Collect from Manual Video Gallery (Added via functions.php)
   if (post.pb_video_gallery && post.pb_video_gallery.length > 0) {
     const pbVideos = Array.isArray(post.pb_video_gallery) ? post.pb_video_gallery : [post.pb_video_gallery];
     resolvedVideos = [...pbVideos];
   }
 
-  // Collect from ACF (Fallback)
   if (resolvedVideos.length === 0 && acf.videos && Array.isArray(acf.videos)) {
     resolvedVideos = acf.videos.map(item => {
       if (typeof item === 'string') return item;
@@ -82,42 +91,46 @@ export default async function DirectorySingle({ params }) {
       return item;
     }).filter(Boolean);
   }
-  
+
   // Build Breadcrumbs
-  const allCategories = await getCategories();
-  const categoryId = post.directory_category?.[0]; // Take the first category
+  const categoryId = post.directory_category?.[0];
   const categoryPath = categoryId ? buildCategoryPath(allCategories, categoryId) : [];
-  const breadcrumbItems = categoryPath;
 
   const imageUrl = getFeaturedImage(post);
-  
+
   return (
     <div className="container section-padding">
       <header style={{ marginBottom: '3rem' }}>
-        <Breadcrumbs items={breadcrumbItems} />
+        <Breadcrumbs items={categoryPath} />
       </header>
 
       <div className="single-grid">
         {/* Main Content */}
         <main className="glass animate-fade-in responsive-padding" style={{ background: '#fff' }}>
           <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: '#0f172a' }} dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-          
+
           {imageUrl && (
-            <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-              <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }} />
+            <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', position: 'relative', width: '100%', maxHeight: '500px', minHeight: '300px' }}>
+              <Image
+                src={imageUrl}
+                alt={post.title.rendered.replace(/<[^>]+>/g, '')}
+                fill
+                style={{ objectFit: 'contain' }}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
+                priority
+              />
             </div>
           )}
-          
+
           <div className="content-section" style={{ marginBottom: '3rem' }}>
             <h3 style={{ marginBottom: '1rem', opacity: 0.6 }}>عن النشاط</h3>
             <div style={{ fontSize: '1.15rem', lineHeight: '1.8', color: '#334155' }}>
               {acf.description && (
-                 <p style={{ whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{acf.description}</p>
+                <p style={{ whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{acf.description}</p>
               )}
-              {/* Native WP Content (often contains the gallery and main text) */}
-              <div 
-                className="wp-content" 
-                dangerouslySetInnerHTML={{ __html: post.content.rendered }} 
+              <div
+                className="wp-content"
+                dangerouslySetInnerHTML={{ __html: post.content.rendered }}
               />
             </div>
           </div>
@@ -147,10 +160,10 @@ export default async function DirectorySingle({ params }) {
           <PhotoGallery images={galleryImages} title="معرض الصور" />
 
           {/* Video Gallery Section */}
-          <VideoGallery 
-            videos={resolvedVideos} 
-            youtubeUrl={acf.youtube} 
-            title="معرض الفيديو" 
+          <VideoGallery
+            videos={resolvedVideos}
+            youtubeUrl={acf.youtube}
+            title="معرض الفيديو"
           />
 
           <ListingInteractions postId={post.id} />

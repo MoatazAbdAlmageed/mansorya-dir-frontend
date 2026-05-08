@@ -1,7 +1,17 @@
-import { getDirectories, getCategories, getCategoryBySlug, buildCategoryPath, getFeaturedImage } from "@/lib/wp";
+import { getDirectories, getCategories, getCategoryBySlug, buildCategoryPath, getFeaturedImage, getAllCategorySlugs } from "@/lib/wp";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
+
+// ISR: re-generate at most once per hour
+export const revalidate = 3600;
+
+// Pre-render all known category pages at build time
+export async function generateStaticParams() {
+  const slugs = await getAllCategorySlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 // Helper to get all descendant IDs of a category
 function getAllDescendantIds(categories, parentId) {
@@ -16,35 +26,31 @@ function getAllDescendantIds(categories, parentId) {
 
 export default async function CategoryPage({ params }) {
   const { slug } = await params;
-  
-  // 1. Fetch current category by slug
-  const currentCategory = await getCategoryBySlug(slug);
-  
+
+  // 🚀 Fetch category + all categories in parallel
+  const [currentCategory, allCategories] = await Promise.all([
+    getCategoryBySlug(slug),
+    getCategories(),
+  ]);
+
   if (!currentCategory) {
     notFound();
   }
 
   let directories = [];
-  let allCategories = [];
   let currentChildren = [];
 
   try {
-    // 2. Fetch all categories (needed for hierarchy logic)
-    allCategories = await getCategories();
-    allCategories = Array.isArray(allCategories) ? allCategories : [];
-
-    // 3. Build the directory filter
     const id = currentCategory.id;
     const descendantIds = getAllDescendantIds(allCategories, id);
     const allFilterIds = [id, ...descendantIds].join(',');
-    
-    let filterParams = `?per_page=100&directory_category=${allFilterIds}`;
 
-    // 4. Fetch directories
+    const filterParams = `?per_page=100&directory_category=${allFilterIds}`;
+
+    // Fetch directories (already has categories, no need to re-fetch)
     directories = await getDirectories(filterParams);
     directories = Array.isArray(directories) ? directories : [];
 
-    // 5. Get children categories for the sidebar/header
     currentChildren = allCategories.filter(cat => cat.parent === id && cat.count > 0);
 
   } catch (error) {
@@ -53,8 +59,7 @@ export default async function CategoryPage({ params }) {
 
   // Build Breadcrumbs
   const categoryPath = buildCategoryPath(allCategories, currentCategory.id);
-  // Last item should not have a link
-  const breadcrumbItems = categoryPath.map((item, idx) => 
+  const breadcrumbItems = categoryPath.map((item, idx) =>
     idx === categoryPath.length - 1 ? { ...item, href: null } : item
   );
 
@@ -64,11 +69,11 @@ export default async function CategoryPage({ params }) {
         <div style={{ textAlign: 'right', marginBottom: '2.5rem' }}>
           <Breadcrumbs items={breadcrumbItems} />
         </div>
-        
+
         <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>
           قسم <span className="text-gradient">{currentCategory.name}</span>
         </h1>
-        
+
         {currentCategory.description && (
           <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', maxWidth: '800px', margin: '0 auto', marginBottom: '2rem' }}>
             {currentCategory.description}
@@ -80,16 +85,16 @@ export default async function CategoryPage({ params }) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', justifyContent: 'center', marginTop: '2rem' }}>
             <span style={{ width: '100%', display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>تصفح الأقسام الفرعية:</span>
             {currentChildren.map(child => (
-              <Link 
-                key={child.id} 
+              <Link
+                key={child.id}
                 href={`/directory_category/${child.slug}`}
-                style={{ 
-                  padding: '0.6rem 1.2rem', 
-                  background: '#fff', 
-                  border: '1px solid var(--primary)', 
-                  borderRadius: '2rem', 
-                  fontSize: '0.95rem', 
-                  color: 'var(--primary)', 
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  background: '#fff',
+                  border: '1px solid var(--primary)',
+                  borderRadius: '2rem',
+                  fontSize: '0.95rem',
+                  color: 'var(--primary)',
                   textDecoration: 'none',
                   transition: 'all 0.2s',
                   fontWeight: '600'
@@ -115,14 +120,23 @@ export default async function CategoryPage({ params }) {
             </span>
           )}
         </div>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-          {directories.length > 0 ? directories.map(post => {
+          {directories.length > 0 ? directories.map((post, index) => {
             const imageUrl = getFeaturedImage(post, 'medium_large');
             return (
               <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                  <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} className="card-image" />
+                  <Image
+                    src={imageUrl}
+                    alt={post.title.rendered.replace(/<[^>]+>/g, '')}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    className="card-image"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                    priority={index < 4}
+                    loading={index < 4 ? 'eager' : 'lazy'}
+                  />
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                     <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>
                     مميز
@@ -132,9 +146,9 @@ export default async function CategoryPage({ params }) {
                   <Link href={`/directory/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                     <h3 dangerouslySetInnerHTML={{ __html: post.title.rendered }} style={{ fontSize: '1.4rem', marginBottom: '0.8rem', color: '#0f172a', transition: 'color 0.2s' }} className="title-link" />
                   </Link>
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }} 
-                    style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }} 
+                  <div
+                    dangerouslySetInnerHTML={{ __html: post.excerpt?.rendered }}
+                    style={{ margin: '0 0 2rem 0', opacity: 0.8, color: '#475569', fontSize: '0.95rem', flex: 1 }}
                   />
                   <Link href={`/directory/${post.slug}`} className="btn" style={{ background: '#f1f5f9', color: 'var(--primary)', fontWeight: 'bold', width: 'fit-content' }}>
                     التفاصيل الكاملة ←

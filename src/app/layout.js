@@ -7,8 +7,9 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-cairo",
+  display: "swap",
 });
 
 export const metadata = {
@@ -28,12 +29,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <head>
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
-          crossOrigin="anonymous" 
-          referrerPolicy="no-referrer" 
+        {/* DNS prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://mansorya.wp1.host" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        {/* Font Awesome — loaded asynchronously to avoid render blocking */}
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+          media="print"
+          onLoad="this.media='all'"
         />
       </head>
       <body className={cairo.className}>

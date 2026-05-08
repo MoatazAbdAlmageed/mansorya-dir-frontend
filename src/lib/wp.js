@@ -1,11 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
 
+// Revalidate cached data every hour (ISR). Override per-call via options.
+const DEFAULT_REVALIDATE = 3600;
+
 export async function fetchAPI(endpoint, options = {}) {
   const url = `${API_URL}${endpoint}`;
   try {
     const res = await fetch(url, {
+      next: { revalidate: DEFAULT_REVALIDATE },
       ...options,
-      cache: 'no-store'
     });
 
     if (!res.ok) {
@@ -68,13 +71,32 @@ export function getFeaturedImage(post, size = 'full') {
 export async function getCategories() {
   const page1 = await fetchAPI('/directory_category?per_page=100&hide_empty=false&page=1');
   
-  // Only fetch page 2 if page 1 was full
+  // Only fetch page 2 if page 1 was full (parallel if needed)
   let page2 = [];
   if (Array.isArray(page1) && page1.length === 100) {
     page2 = await fetchAPI('/directory_category?per_page=100&hide_empty=false&page=2');
   }
   
   return [...page1, ...page2];
+}
+
+// Fetch all directory slugs for generateStaticParams
+export async function getAllDirectorySlugs() {
+  try {
+    const posts = await fetchAPI('/directory?per_page=100&fields=slug&page=1');
+    return Array.isArray(posts) ? posts.map(p => p.slug).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getAllCategorySlugs() {
+  try {
+    const cats = await getCategories();
+    return cats.map(c => c.slug).filter(Boolean);
+  } catch {
+    return [];
+  }
 }
 
 export async function getCategoryBySlug(slug) {

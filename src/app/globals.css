@@ -58,8 +58,26 @@ body {
 }
 
 .container {
+  width: 100%;
   margin: 0 auto;
   padding: 0 1.25rem;
+}
+
+/* Container responsive padding */
+@media (max-width: 1024px) {
+  .container { padding: 0 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 0 1rem; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0 0.85rem; }
+}
+
+@media (max-width: 360px) {
+  .container { padding: 0 0.65rem; }
 }
 
 .section-padding {
@@ -520,6 +538,10 @@ h3 {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
+  /* Move بيانات الاتصال (aside) to top on mobile */
+  .single-grid aside { order: -1; }
+  .single-grid main  { order: 1;  }
 }
 
 .responsive-padding {

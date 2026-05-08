@@ -23,7 +23,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'scontent.fcai19-7.fna.fbcdn.net',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: '*.behance.net',
+        pathname: '/**',
+      },
     ],
     // Cache optimized images for 7 days
     minimumCacheTTL: 604800,

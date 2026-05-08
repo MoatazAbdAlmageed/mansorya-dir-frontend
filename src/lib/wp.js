@@ -37,7 +37,10 @@ export async function getDirectories(params = '') {
 }
 
 export async function getDirectory(slug) {
-  const posts = await fetchAPI(`/directory?slug=${slug}&_embed`);
+  // Next.js decodes percent-encoded params (e.g. Arabic slugs).
+  // Re-encode so the WP REST API receives the correct encoded slug.
+  const encodedSlug = encodeURIComponent(slug);
+  const posts = await fetchAPI(`/directory?slug=${encodedSlug}&_embed`);
   return posts[0];
 }
 

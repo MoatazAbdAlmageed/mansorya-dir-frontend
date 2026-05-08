@@ -29,6 +29,12 @@ input, button, select, textarea {
   font-family: var(--font-cairo), sans-serif !important;
 }
 
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -335,9 +341,9 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(248, 250, 252, 0.3); /* Very subtle tint to match --background */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(248, 250, 252, 0.7); /* Increased opacity to hide background clutter */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 9999;
 }
 

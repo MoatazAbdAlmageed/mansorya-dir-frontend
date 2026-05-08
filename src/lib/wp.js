@@ -46,13 +46,12 @@ export async function getDirectory(slug) {
 
 export function getFeaturedImage(post, size = 'full') {
   // 1. Check WordPress Featured Image via _embedded (Primary Source)
+  // Guard: WP REST API sometimes returns an error object {code, message} instead of media
   const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
-  if (featuredMedia) {
-    // If a specific size is requested and exists, use it
+  if (featuredMedia && !featuredMedia.code) {
     if (size !== 'full' && featuredMedia.media_details?.sizes?.[size]) {
       return featuredMedia.media_details.sizes[size].source_url;
     }
-    // Fallback to full source_url
     if (featuredMedia.source_url) {
       return featuredMedia.source_url;
     }
@@ -60,15 +59,16 @@ export function getFeaturedImage(post, size = 'full') {
 
   // 2. Check ACF field image_url (Legacy/External Source)
   if (post.acf?.image_url) return post.acf.image_url;
-  
+
   // 3. Check ACF gallery (Another Fallback)
   if (post.acf?.gallery && Array.isArray(post.acf.gallery) && post.acf.gallery.length > 0) {
     const firstItem = post.acf.gallery[0];
-    return firstItem.url || firstItem;
+    const url = firstItem?.url || (typeof firstItem === 'string' ? firstItem : null);
+    if (url) return url;
   }
-  
-  // 4. Final fallback placeholder
-  return '/icon-512x512.png'; 
+
+  // No image found — return null so callers can render a placeholder
+  return null;
 }
 
 export async function getCategories() {

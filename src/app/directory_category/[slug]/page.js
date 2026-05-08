@@ -126,14 +126,21 @@ export default async function CategoryPage({ params }) {
             return (
               <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                  {/* Plain img — imageUrl can be from any external domain */}
-                  <img
-                    src={imageUrl}
-                    alt={post.title.rendered.replace(/<[^>]+>/g, '')}
-                    loading={index < 4 ? 'eager' : 'lazy'}
-                    className="card-image"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
+                  {imageUrl ? (
+                    /* Plain img — imageUrl can be from any external domain */
+                    <img
+                      src={imageUrl}
+                      alt={post.title.rendered.replace(/<[^>]+>/g, '')}
+                      loading={index < 4 ? 'eager' : 'lazy'}
+                      className="card-image"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem', color: '#94a3b8' }}>
+                      <i className="fa-solid fa-image" style={{ fontSize: '2.5rem' }}></i>
+                      <span style={{ fontSize: '0.85rem' }}>لا توجد صورة</span>
+                    </div>
+                  )}
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                     <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>
                     مميز

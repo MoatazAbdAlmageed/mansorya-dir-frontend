@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ListingInteractions from "@/components/ListingInteractions";
+import PhotoGallery from "@/components/PhotoGallery";
+import VideoGallery from "@/components/VideoGallery";
 
 // Helper for social icons
 const SocialLink = ({ url, icon, label, color }) => {
@@ -20,8 +22,63 @@ export default async function DirectorySingle({ params }) {
   const post = await getDirectory(slug);
 
   if (!post) notFound();
+  
+  // Debug log to check API fields
+  console.log('Post Data Keys:', Object.keys(post));
+  console.log('PB Gallery Data:', post.pb_directory_gallery);
+  console.log('PB Video Gallery:', post.pb_video_gallery);
 
   const acf = post.acf || {};
+
+  // Resolve gallery IDs if necessary
+  let galleryImages = acf.gallery || [];
+  if (!Array.isArray(galleryImages) && galleryImages) {
+    galleryImages = [galleryImages];
+  }
+
+  // If gallery items are IDs (numbers), we try to fetch them or find them in embedded
+  if (Array.isArray(galleryImages) && galleryImages.length > 0 && typeof galleryImages[0] === 'number') {
+    // This is a fallback - ideally the user should set ACF to return 'Image Array'
+    // But we can try to fetch them here if we really want to.
+    // However, to keep it fast, we'll just advise the user for now or use a placeholder.
+    // Let's try to fetch them as it's a small number usually.
+    try {
+      const resolvedImages = await Promise.all(
+        galleryImages.map(async (id) => {
+          if (typeof id !== 'number') return id;
+          const res = await fetch(`${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/media/${id}`);
+          if (res.ok) {
+            const media = await res.json();
+            return { url: media.source_url, alt: media.alt_text };
+          }
+          return null;
+        })
+      );
+      galleryImages = resolvedImages.filter(img => img !== null);
+    } catch (e) {
+      console.error("Failed to resolve gallery IDs", e);
+    }
+  }
+
+  // Resolve video repeater if necessary
+  let resolvedVideos = [];
+  if (acf.videos && Array.isArray(acf.videos)) {
+    resolvedVideos = acf.videos.map(item => {
+      if (typeof item === 'string') return item;
+      if (item.video) return item.video.url || item.video;
+      return item;
+    }).filter(Boolean);
+  }
+
+  // Fallback to theme manual gallery if ACF is empty
+  if (galleryImages.length === 0 && post.pb_directory_gallery && Array.isArray(post.pb_directory_gallery)) {
+    galleryImages = post.pb_directory_gallery;
+  }
+
+  // Fallback to theme manual videos if ACF is empty
+  if (resolvedVideos.length === 0 && post.pb_video_gallery && Array.isArray(post.pb_video_gallery)) {
+    resolvedVideos = post.pb_video_gallery;
+  }
   
   // Build Breadcrumbs
   const allCategories = await getCategories();
@@ -51,16 +108,19 @@ export default async function DirectorySingle({ params }) {
           <div className="content-section" style={{ marginBottom: '3rem' }}>
             <h3 style={{ marginBottom: '1rem', opacity: 0.6 }}>عن النشاط</h3>
             <div style={{ fontSize: '1.15rem', lineHeight: '1.8', color: '#334155' }}>
-              {acf.description ? (
-                 <p style={{ whiteSpace: 'pre-wrap' }}>{acf.description}</p>
-              ) : (
-                <div dangerouslySetInnerHTML={{ __html: post.content.rendered }} />
+              {acf.description && (
+                 <p style={{ whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{acf.description}</p>
               )}
+              {/* Native WP Content (often contains the gallery and main text) */}
+              <div 
+                className="wp-content" 
+                dangerouslySetInnerHTML={{ __html: post.content.rendered }} 
+              />
             </div>
           </div>
 
           {acf.notes && (
-            <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '1rem', borderRight: '4px solid var(--primary)' }}>
+            <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '1rem', borderRight: '4px solid var(--primary)', marginBottom: '3rem' }}>
               <h4 style={{ marginBottom: '0.5rem' }}>ملاحظات إضافية</h4>
               <p style={{ margin: 0, color: '#475569' }}>{acf.notes}</p>
             </div>
@@ -80,79 +140,15 @@ export default async function DirectorySingle({ params }) {
             </div>
           </div>
 
-          {/* Gallery Section */}
-          {acf.gallery && Array.isArray(acf.gallery) && acf.gallery.length > 0 && (
-            <div style={{ marginTop: '4rem' }}>
-              <h3 style={{ marginBottom: '1.5rem', opacity: 0.6 }}>معرض الصور</h3>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-                gap: '1rem' 
-              }}>
-                {acf.gallery.map((img, idx) => (
-                  <div key={idx} className="gallery-item" style={{ 
-                    borderRadius: '1rem', 
-                    overflow: 'hidden', 
-                    aspectRatio: '1/1',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s'
-                  }}>
-                    <img 
-                      src={img.url || img} 
-                      alt={`Gallery image ${idx + 1}`} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Photo Gallery Section */}
+          <PhotoGallery images={galleryImages} title="معرض الصور" />
 
-          {/* Video Section */}
-          {(acf.youtube || acf.videos) && (
-            <div style={{ marginTop: '4rem' }}>
-              <h3 style={{ marginBottom: '1.5rem', opacity: 0.6 }}>الفيديوهات</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                {acf.youtube && (
-                  <div style={{ 
-                    position: 'relative', 
-                    paddingBottom: '56.25%', 
-                    height: 0, 
-                    borderRadius: '1.5rem', 
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-                  }}>
-                    <iframe
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                      src={acf.youtube.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                      title="YouTube video player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                )}
-                {acf.videos && Array.isArray(acf.videos) && acf.videos.map((video, idx) => (
-                  <div key={idx} style={{ 
-                    position: 'relative', 
-                    paddingBottom: '56.25%', 
-                    height: 0, 
-                    borderRadius: '1.5rem', 
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-                  }}>
-                    <video 
-                      controls 
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                    >
-                      <source src={video.url || video} />
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Video Gallery Section */}
+          <VideoGallery 
+            videos={resolvedVideos} 
+            youtubeUrl={acf.youtube} 
+            title="معرض الفيديو" 
+          />
 
           <ListingInteractions postId={post.id} />
         </main>

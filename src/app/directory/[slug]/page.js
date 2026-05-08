@@ -1,5 +1,4 @@
 import { getDirectory, getCategories, buildCategoryPath, getFeaturedImage, getAllDirectorySlugs } from "@/lib/wp";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -110,14 +109,13 @@ export default async function DirectorySingle({ params }) {
           <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: '#0f172a' }} dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
 
           {imageUrl && (
-            <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', position: 'relative', width: '100%', maxHeight: '500px', minHeight: '300px' }}>
-              <Image
+            <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+              {/* Plain img used intentionally — image_url can come from any external domain (Behance, FB CDN, etc.) */}
+              <img
                 src={imageUrl}
                 alt={post.title.rendered.replace(/<[^>]+>/g, '')}
-                fill
-                style={{ objectFit: 'contain' }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 900px"
-                priority
+                loading="lazy"
+                style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', display: 'block' }}
               />
             </div>
           )}

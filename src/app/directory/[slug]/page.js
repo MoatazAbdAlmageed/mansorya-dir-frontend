@@ -104,7 +104,7 @@ export default async function DirectorySingle({ params }) {
           
           {imageUrl && (
             <div style={{ marginBottom: '2.5rem', borderRadius: '1.5rem', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-              <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
+              <img src={imageUrl} alt={post.title.rendered} style={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }} />
             </div>
           )}
           

@@ -118,7 +118,7 @@ export default async function CategoryPage({ params }) {
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
           {directories.length > 0 ? directories.map(post => {
-            const imageUrl = getFeaturedImage(post);
+            const imageUrl = getFeaturedImage(post, 'medium_large');
             return (
               <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>

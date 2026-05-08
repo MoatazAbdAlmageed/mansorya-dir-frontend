@@ -25,8 +25,12 @@ export async function fetchAPI(endpoint, options = {}) {
 }
 
 export async function getDirectories(params = '') {
+  // Ensure we don't duplicate _embed and handle query separators
+  const hasEmbed = params.includes('_embed');
   const separator = params.includes('?') ? '&' : '?';
-  return fetchAPI(`/directory${params}${separator}_embed`);
+  const embedParam = hasEmbed ? '' : `${separator}_embed`;
+  
+  return fetchAPI(`/directory${params}${embedParam}`);
 }
 
 export async function getDirectory(slug) {
@@ -34,16 +38,30 @@ export async function getDirectory(slug) {
   return posts[0];
 }
 
-export function getFeaturedImage(post) {
-  // 1. Check ACF field first
+export function getFeaturedImage(post, size = 'full') {
+  // 1. Check WordPress Featured Image via _embedded (Primary Source)
+  const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
+  if (featuredMedia) {
+    // If a specific size is requested and exists, use it
+    if (size !== 'full' && featuredMedia.media_details?.sizes?.[size]) {
+      return featuredMedia.media_details.sizes[size].source_url;
+    }
+    // Fallback to full source_url
+    if (featuredMedia.source_url) {
+      return featuredMedia.source_url;
+    }
+  }
+
+  // 2. Check ACF field image_url (Legacy/External Source)
   if (post.acf?.image_url) return post.acf.image_url;
   
-  // 2. Check WordPress Featured Image via _embedded
-  if (post._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
-    return post._embedded['wp:featuredmedia'][0].source_url;
+  // 3. Check ACF gallery (Another Fallback)
+  if (post.acf?.gallery && Array.isArray(post.acf.gallery) && post.acf.gallery.length > 0) {
+    const firstItem = post.acf.gallery[0];
+    return firstItem.url || firstItem;
   }
   
-  // 3. Fallback placeholder
+  // 4. Final fallback placeholder
   return '/icon-512x512.png'; 
 }
 

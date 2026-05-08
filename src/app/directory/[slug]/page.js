@@ -24,24 +24,29 @@ export default async function DirectorySingle({ params }) {
   if (!post) notFound();
   
   // Debug log to check API fields
-  console.log('Post Data Keys:', Object.keys(post));
+  console.log('Post Data Keys:', Object.keys(post));  
   console.log('PB Gallery Data:', post.pb_directory_gallery);
   console.log('PB Video Gallery:', post.pb_video_gallery);
 
   const acf = post.acf || {};
 
-  // Resolve gallery IDs if necessary
-  let galleryImages = acf.gallery || [];
-  if (!Array.isArray(galleryImages) && galleryImages) {
-    galleryImages = [galleryImages];
+  // --- 1. Resolve Photo Gallery Images ---
+  let galleryImages = [];
+  
+  // Collect from Manual Gallery (Added via functions.php)
+  if (post.pb_directory_gallery && post.pb_directory_gallery.length > 0) {
+    const pbItems = Array.isArray(post.pb_directory_gallery) ? post.pb_directory_gallery : [post.pb_directory_gallery];
+    galleryImages = [...pbItems];
   }
 
-  // If gallery items are IDs (numbers), we try to fetch them or find them in embedded
-  if (Array.isArray(galleryImages) && galleryImages.length > 0 && typeof galleryImages[0] === 'number') {
-    // This is a fallback - ideally the user should set ACF to return 'Image Array'
-    // But we can try to fetch them here if we really want to.
-    // However, to keep it fast, we'll just advise the user for now or use a placeholder.
-    // Let's try to fetch them as it's a small number usually.
+  // Collect from ACF (Fallback)
+  if (galleryImages.length === 0 && acf.gallery) {
+    const acfItems = Array.isArray(acf.gallery) ? acf.gallery : [acf.gallery];
+    galleryImages = [...acfItems];
+  }
+
+  // Handle ID resolution if images are returned as numeric IDs (ACF fallback)
+  if (galleryImages.length > 0 && typeof galleryImages[0] === 'number') {
     try {
       const resolvedImages = await Promise.all(
         galleryImages.map(async (id) => {
@@ -60,24 +65,22 @@ export default async function DirectorySingle({ params }) {
     }
   }
 
-  // Resolve video repeater if necessary
+  // --- 2. Resolve Video Gallery ---
   let resolvedVideos = [];
-  if (acf.videos && Array.isArray(acf.videos)) {
+
+  // Collect from Manual Video Gallery (Added via functions.php)
+  if (post.pb_video_gallery && post.pb_video_gallery.length > 0) {
+    const pbVideos = Array.isArray(post.pb_video_gallery) ? post.pb_video_gallery : [post.pb_video_gallery];
+    resolvedVideos = [...pbVideos];
+  }
+
+  // Collect from ACF (Fallback)
+  if (resolvedVideos.length === 0 && acf.videos && Array.isArray(acf.videos)) {
     resolvedVideos = acf.videos.map(item => {
       if (typeof item === 'string') return item;
       if (item.video) return item.video.url || item.video;
       return item;
     }).filter(Boolean);
-  }
-
-  // Fallback to theme manual gallery if ACF is empty
-  if (galleryImages.length === 0 && post.pb_directory_gallery && Array.isArray(post.pb_directory_gallery)) {
-    galleryImages = post.pb_directory_gallery;
-  }
-
-  // Fallback to theme manual videos if ACF is empty
-  if (resolvedVideos.length === 0 && post.pb_video_gallery && Array.isArray(post.pb_video_gallery)) {
-    resolvedVideos = post.pb_video_gallery;
   }
   
   // Build Breadcrumbs

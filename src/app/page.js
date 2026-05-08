@@ -1,5 +1,4 @@
 import { getDirectories, getCategories, getFeaturedImage } from "@/lib/wp";
-import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import Spinner from "@/components/Spinner";
@@ -211,15 +210,13 @@ export default async function DirectoryArchive({ searchParams }) {
             return (
               <div key={post.id} className="glass animate-fade-in listing-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden', transition: 'transform 0.3s' }}>
                 <Link href={`/directory/${post.slug}`} style={{ display: 'block', height: '220px', width: '100%', overflow: 'hidden', position: 'relative' }}>
-                  <Image
+                  {/* Plain img — imageUrl can be from any external domain */}
+                  <img
                     src={imageUrl}
                     alt={post.title.rendered.replace(/<[^>]+>/g, '')}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    className="card-image"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
-                    priority={index < 4}
                     loading={index < 4 ? 'eager' : 'lazy'}
+                    className="card-image"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.9)', padding: '0.4rem 0.8rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                     <i className="fa-solid fa-star" style={{ color: 'var(--accent)', marginLeft: '5px' }}></i>

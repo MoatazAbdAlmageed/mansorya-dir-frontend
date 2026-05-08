@@ -16,13 +16,18 @@ export const metadata = {
   title: "دليل المنصورية",
   description: "دليل الخدمات والأعمال الشامل لمنطقة المنصورية",
   manifest: '/manifest.json',
-  themeColor: '#009688',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'المنصورية',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#009688',
 };
 
 export default function RootLayout({ children }) {

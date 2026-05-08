@@ -83,11 +83,44 @@ export async function getCategories() {
   return [...page1, ...page2];
 }
 
-// Fetch all directory slugs for generateStaticParams
+// Fetch ALL directory slugs for generateStaticParams
+// Note: slugs are decoded so Next.js builds pages at correct Unicode paths
 export async function getAllDirectorySlugs() {
   try {
-    const posts = await fetchAPI('/directory?per_page=100&fields=slug&page=1');
-    return Array.isArray(posts) ? posts.map(p => p.slug).filter(Boolean) : [];
+    const allSlugs = [];
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const res = await fetch(
+        `${API_URL}/directory?per_page=100&fields=slug&page=${page}`,
+        { next: { revalidate: DEFAULT_REVALIDATE } }
+      );
+
+      if (!res.ok) break;
+
+      const posts = await res.json();
+      if (!Array.isArray(posts) || posts.length === 0) break;
+
+      posts.forEach(p => {
+        if (p.slug) {
+          // Decode percent-encoded Arabic slugs so generateStaticParams
+          // gives Next.js proper Unicode paths (avoids double-encoding on Vercel)
+          try {
+            allSlugs.push(decodeURIComponent(p.slug));
+          } catch {
+            allSlugs.push(p.slug); // fallback: keep as-is if decode fails
+          }
+        }
+      });
+
+      // WP REST API sends X-WP-TotalPages header — stop when we've fetched all
+      const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1', 10);
+      hasMore = page < totalPages;
+      page++;
+    }
+
+    return allSlugs;
   } catch {
     return [];
   }
@@ -96,11 +129,15 @@ export async function getAllDirectorySlugs() {
 export async function getAllCategorySlugs() {
   try {
     const cats = await getCategories();
-    return cats.map(c => c.slug).filter(Boolean);
+    return cats
+      .map(c => c.slug)
+      .filter(Boolean)
+      .map(slug => { try { return decodeURIComponent(slug); } catch { return slug; } });
   } catch {
     return [];
   }
 }
+
 
 export async function getCategoryBySlug(slug) {
   const categories = await fetchAPI(`/directory_category?slug=${slug}`);

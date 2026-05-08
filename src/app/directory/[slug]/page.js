@@ -27,7 +27,7 @@ export default async function DirectorySingle({ params }) {
   const allCategories = await getCategories();
   const categoryId = post.directory_category?.[0]; // Take the first category
   const categoryPath = categoryId ? buildCategoryPath(allCategories, categoryId) : [];
-  const breadcrumbItems = [...categoryPath, { label: post.title.rendered }];
+  const breadcrumbItems = categoryPath;
 
   const imageUrl = getFeaturedImage(post);
   

@@ -2,112 +2,207 @@
 
 import { motion } from 'framer-motion';
 
-export default function VideoGallery({ videos, youtubeUrl, title = "معرض الفيديو" }) {
-  const hasVideos = (videos && Array.isArray(videos) && videos.length > 0);
-  const hasYoutube = !!youtubeUrl;
+// ── URL Parsers ──────────────────────────────────────────────
 
-  if (!hasVideos && !hasYoutube) return null;
+function getYoutubeEmbedUrl(url) {
+  if (!url) return null;
+  // Handles: youtube.com/watch?v=, youtu.be/, youtube.com/shorts/, youtube.com/embed/
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? `https://www.youtube.com/embed/${match[1]}?rel=0` : null;
+}
 
-  const parseYoutubeEmbed = (url) => {
-    if (!url) return null;
-    let videoId = '';
-    if (url.includes('v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    } else if (url.includes('embed/')) {
-      videoId = url.split('embed/')[1].split('?')[0];
-    }
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+function getFacebookEmbedUrl(url) {
+  if (!url) return null;
+  if (!url.includes('facebook.com') && !url.includes('fb.watch')) return null;
+  // Facebook's official oEmbed iframe format
+  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=560&autoplay=false`;
+}
+
+function detectVideoType(url) {
+  if (!url) return null;
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  if (url.includes('facebook.com') || url.includes('fb.watch')) return 'facebook';
+  if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)) return 'direct';
+  return 'unknown';
+}
+
+// ── Video Card Component ─────────────────────────────────────
+
+function VideoCard({ url, title, idx }) {
+  const type = detectVideoType(url);
+
+  const wrapperStyle = {
+    borderRadius: '16px',
+    overflow: 'hidden',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+    background: '#000',
+    aspectRatio: '16/9',
+    position: 'relative',
   };
 
-  const youtubeEmbedUrl = parseYoutubeEmbed(youtubeUrl);
+  const iframeStyle = {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    display: 'block',
+    position: 'absolute',
+    inset: 0,
+  };
+
+  if (type === 'youtube') {
+    const embedUrl = getYoutubeEmbedUrl(url);
+    if (!embedUrl) return <ExternalLink url={url} label="مشاهدة على يوتيوب" icon="fa-youtube" color="#FF0000" />;
+    return (
+      <VideoWrapper idx={idx} type="youtube" title={title}>
+        <div style={{ ...wrapperStyle }}>
+          <iframe
+            src={embedUrl}
+            title={title || `يوتيوب ${idx + 1}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            style={iframeStyle}
+            loading="lazy"
+          />
+        </div>
+      </VideoWrapper>
+    );
+  }
+
+  if (type === 'facebook') {
+    const embedUrl = getFacebookEmbedUrl(url);
+    if (!embedUrl) return <ExternalLink url={url} label="مشاهدة على فيسبوك" icon="fa-facebook" color="#1877F2" />;
+    return (
+      <VideoWrapper idx={idx} type="facebook" title={title}>
+        <div style={{ ...wrapperStyle }}>
+          <iframe
+            src={embedUrl}
+            title={title || `فيسبوك ${idx + 1}`}
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+            scrolling="no"
+            style={iframeStyle}
+            loading="lazy"
+          />
+        </div>
+      </VideoWrapper>
+    );
+  }
+
+  if (type === 'direct') {
+    return (
+      <VideoWrapper idx={idx} type="direct" title={title}>
+        <div style={{ ...wrapperStyle }}>
+          <video controls style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+            <source src={url} />
+            متصفحك لا يدعم تشغيل الفيديو
+          </video>
+        </div>
+      </VideoWrapper>
+    );
+  }
+
+  // Fallback: open as link
+  return <ExternalLink url={url} label="فتح الفيديو" icon="fa-circle-play" color="var(--primary)" />;
+}
+
+function VideoWrapper({ children, idx, type, title }) {
+  const iconMap = {
+    youtube: { icon: 'fa-youtube', color: '#FF0000', label: 'يوتيوب' },
+    facebook: { icon: 'fa-facebook', color: '#1877F2', label: 'فيسبوك' },
+    direct: { icon: 'fa-file-video', color: 'var(--primary)', label: 'فيديو' },
+  };
+  const meta = iconMap[type] || iconMap.direct;
 
   return (
-    <section className="video-gallery-section" style={{ marginTop: '4rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{ 
-          width: '45px', 
-          height: '45px', 
-          background: 'rgba(255, 0, 0, 0.1)', 
-          borderRadius: '12px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: Math.min(idx * 0.1, 0.4) }}
+      className="video-card"
+    >
+      {children}
+      <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <i className={`fa-brands ${meta.icon}`} style={{ color: meta.color, fontSize: '1rem' }}></i>
+        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#475569' }}>
+          {title || meta.label}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+function ExternalLink({ url, label, icon, color }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0' }}>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn"
+        style={{ background: color, color: '#fff', gap: '0.5rem' }}
+      >
+        <i className={`fa-brands ${icon}`}></i> {label}
+      </a>
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────
+
+export default function VideoGallery({ videos, youtubeUrl, title = "معرض الفيديو" }) {
+  // Normalize all videos into { url, title } objects
+  const allVideos = [];
+
+  // 1. From pb_video_gallery / acf.videos array
+  if (Array.isArray(videos) && videos.length > 0) {
+    videos.forEach(v => {
+      const url = typeof v === 'string' ? v : (v?.url || v?.source_url);
+      const label = typeof v === 'object' ? (v?.title || '') : '';
+      if (url) allVideos.push({ url, title: label });
+    });
+  }
+
+  // 2. From ACF youtube channel URL (fallback single video)
+  if (youtubeUrl && !allVideos.some(v => v.url === youtubeUrl)) {
+    allVideos.push({ url: youtubeUrl, title: 'يوتيوب' });
+  }
+
+  if (allVideos.length === 0) return null;
+
+  return (
+    <section style={{ marginTop: '4rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{
+          width: '42px', height: '42px',
+          background: 'rgba(255,0,0,0.1)',
+          borderRadius: '12px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#FF0000'
         }}>
-          <i className="fa-solid fa-circle-play" style={{ fontSize: '1.2rem' }}></i>
+          <i className="fa-solid fa-circle-play" style={{ fontSize: '1.1rem' }}></i>
         </div>
-        <h3 style={{ margin: 0, fontSize: '1.5rem' }}>{title}</h3>
+        <h3 style={{ margin: 0, fontSize: '1.4rem' }}>{title}</h3>
+        <span style={{
+          background: 'rgba(255,0,0,0.08)', color: '#FF0000',
+          borderRadius: '2rem', padding: '0.2rem 0.75rem',
+          fontSize: '0.85rem', fontWeight: 700
+        }}>{allVideos.length}</span>
       </div>
 
-      <div className="video-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-        {youtubeEmbedUrl && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="video-card"
-          >
-            <div className="video-wrapper" style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-              <iframe
-                src={youtubeEmbedUrl}
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ width: '100%', aspectRatio: '16/9', border: 'none' }}
-              ></iframe>
-            </div>
-            <div className="video-info" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <i className="fa-brands fa-youtube" style={{ color: '#FF0000' }}></i>
-               <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>فيديو من اليوتيوب</span>
-            </div>
-          </motion.div>
-        )}
-
-        {hasVideos && videos.map((video, idx) => {
-          const url = typeof video === 'string' ? video : (video.url || video.source_url);
-          if (!url) return null;
-
-          return (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: (idx + 1) * 0.1 }}
-              className="video-card"
-            >
-              <div className="video-wrapper" style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', background: '#000' }}>
-                <video controls style={{ width: '100%', aspectRatio: '16/9' }}>
-                  <source src={url} />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-              <div className="video-info" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                 <i className="fa-solid fa-file-video" style={{ color: 'var(--primary)' }}></i>
-                 <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                   {video.title || (typeof video === 'string' ? "فيديو محلي" : "فيديو")}
-                 </span>
-              </div>
-            </motion.div>
-          );
-        })}
+      {/* Grid */}
+      <div className="video-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '2rem'
+      }}>
+        {allVideos.map((video, idx) => (
+          <VideoCard key={idx} url={video.url} title={video.title} idx={idx} />
+        ))}
       </div>
-
-      {!youtubeEmbedUrl && youtubeUrl && (
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <a 
-            href={youtubeUrl} 
-            target="_blank" 
-            className="btn" 
-            style={{ background: '#FF0000', color: '#fff', padding: '1rem 2rem' }}
-          >
-            <i className="fa-brands fa-youtube"></i> زيارة القناة لمشاهدة الفيديوهات
-          </a>
-        </div>
-      )}
-
     </section>
   );
 }

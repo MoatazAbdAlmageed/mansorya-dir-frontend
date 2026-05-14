@@ -5,7 +5,7 @@ import Spinner from "@/components/Spinner";
 import { Suspense } from "react";
 
 // ISR: re-generate homepage at most once per hour
-export const revalidate = 3600;
+export const revalidate = 60;
 
 // Helper to get all descendant IDs of a category
 function getAllDescendantIds(categories, parentId) {

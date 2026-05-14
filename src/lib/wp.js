@@ -1,7 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
 
 // Revalidate cached data every hour (ISR). Override per-call via options.
-const DEFAULT_REVALIDATE = 3600;
+const DEFAULT_REVALIDATE = 60;
 
 export async function fetchAPI(endpoint, options = {}) {
   const url = `${API_URL}${endpoint}`;

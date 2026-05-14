@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 // ISR: re-generate at most once per hour
-export const revalidate = 3600;
+export const revalidate = 60;
 
 // Pre-render all known category pages at build time
 export async function generateStaticParams() {

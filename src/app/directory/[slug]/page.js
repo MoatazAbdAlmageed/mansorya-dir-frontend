@@ -7,7 +7,7 @@ import PhotoGallery from "@/components/PhotoGallery";
 import VideoGallery from "@/components/VideoGallery";
 
 // ISR: re-generate page at most once per hour
-export const revalidate = 3600;
+export const revalidate = 60;
 
 // Pre-render all known directory pages at build time
 export async function generateStaticParams() {
@@ -60,7 +60,7 @@ export default async function DirectorySingle({ params }) {
           if (typeof id !== 'number') return id;
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_WORDPRESS_API_URL}/media/${id}`,
-            { next: { revalidate: 3600 } }
+            { next: { revalidate: 60 } }
           );
           if (res.ok) {
             const media = await res.json();

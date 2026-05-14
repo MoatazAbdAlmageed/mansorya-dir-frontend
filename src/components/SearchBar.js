@@ -27,7 +27,7 @@ export default function SearchBar() {
           type="text" 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="ابحث عن منشأة، تخصص، أو قسم..."
+          placeholder="ابحث عن فرد أو مؤسسة، تخصص، أو قسم..."
           dir="rtl"
           style={{ 
             width: '100%', 

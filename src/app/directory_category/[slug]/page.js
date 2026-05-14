@@ -115,7 +115,7 @@ export default async function CategoryPage({ params }) {
           </h2>
           {directories.length > 0 && (
             <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-              تم العثور على {directories.length} منشأة
+              تم العثور على {directories.length} من الأفراد والمؤسسات
             </span>
           )}
         </div>
@@ -163,7 +163,7 @@ export default async function CategoryPage({ params }) {
           }) : (
             <div className="glass animate-fade-in" style={{ padding: '5rem 2rem', textAlign: 'center', gridColumn: '1/-1', background: '#fff' }}>
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
-              <p style={{ fontSize: '1.4rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>لا توجد منشآت منشورة في هذا القسم حالياً.</p>
+              <p style={{ fontSize: '1.4rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>لا توجد نتائج منشورة في هذا القسم حالياً.</p>
               <Link href="/" className="btn btn-primary" style={{ padding: '1rem 2rem' }}>
                 العودة لتصفح كافة الأقسام
               </Link>

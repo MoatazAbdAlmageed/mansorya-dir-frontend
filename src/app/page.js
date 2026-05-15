@@ -128,6 +128,30 @@ export default async function DirectoryArchive({ searchParams }) {
             <Suspense fallback={<Spinner size="small" text="" />}>
               <SearchBar key={searchQuery || 'initial'} />
             </Suspense>
+
+            {!categoryId && !searchQuery && (
+              <div className="animate-fade-in" style={{ marginTop: '2.5rem' }}>
+                <Link 
+                  href="/download-app" 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.8rem', 
+                    background: 'linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)', 
+                    padding: '0.8rem 1.5rem', 
+                    borderRadius: '1.2rem', 
+                    color: '#00695c', 
+                    textDecoration: 'none', 
+                    fontWeight: '700',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                    border: '1px solid #80cbc4'
+                  }}
+                >
+                  <i className="fa-brands fa-android" style={{ fontSize: '1.4rem' }}></i>
+                  <span>حمل تطبيق دليل المنصورية الآن واستمتع بتجربة أسرع!</span>
+                </Link>
+              </div>
+            )}
           </>
         )}
       </header>

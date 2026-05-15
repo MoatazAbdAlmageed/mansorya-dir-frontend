@@ -78,6 +78,27 @@ export default function RootLayout({ children }) {
               >
                 أضف عملك
               </Link>
+              <Link 
+                href="/download-app" 
+                style={{ 
+                  color: '#fff', 
+                  textDecoration: 'none', 
+                  fontWeight: '700',
+                  background: 'rgba(255,255,255,0.15)',
+                  padding: '0.6rem 1.2rem',
+                  borderRadius: '1rem',
+                  fontSize: '0.95rem',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                className="nav-btn"
+              >
+                <i className="fa-brands fa-android"></i>
+                تحميل التطبيق
+              </Link>
               <a 
                 href="https://www.facebook.com/groups/mansorya" 
                 target="_blank" 
@@ -129,6 +150,9 @@ export default function RootLayout({ children }) {
               <a href="https://wa.me/201150064746" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.1rem' }}>
                 <i className="fa-brands fa-whatsapp"></i> واتساب
               </a>
+              <Link href="/download-app" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.1rem' }}>
+                <i className="fa-brands fa-android"></i> تحميل التطبيق
+              </Link>
             </div>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2.5rem' }}>
               <p>© 2026 دليل المنصورية. جميع الحقوق محفوظة.</p>
